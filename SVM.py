@@ -2,14 +2,20 @@ from SMO import SMO
 from StochasticSMO import StochasticSMO
 
 
+def get_optimizer(optimizer):
+    if isinstance(optimizer, (SMO, StochasticSMO)):
+        return optimizer
+    elif optimizer.lower() == 'stochasticsmo':
+        return StochasticSMO()
+    elif optimizer.lower() == 'smo':
+        return SMO()
+    else:
+        raise ValueError(f"{optimizer} is not a valid optimizer.")
+
+
 class SVM:
     def __init__(self, kernel_function, C=1, optimizer='StochasticSMO'):
-        if optimizer.lower() == 'stochasticsmo':
-            self.optimizer = StochasticSMO
-        elif optimizer.lower() == 'smo':
-            self.optimizer = SMO
-        else:
-            raise ValueError("SVM only takes in optimizer=['StochasticSMO', 'SMO']")
+        self.optimizer = get_optimizer(optimizer)
 
         self.kernel_function = kernel_function
         self.C = C
@@ -22,13 +28,11 @@ class SVM:
 
         self.fitted = False
 
-    def fit(self, x_train, y_train, max_iter=100, alpha_tol=1e-2, error_tol=1e-2):
+    def fit(self, x_train, y_train, max_iter=100):
         self.x_train = x_train
         self.y_train = y_train
 
-        optimizer = self.optimizer(x_train, y_train, self.kernel_function, C=self.C,
-                                   alpha_tol=alpha_tol, error_tol=error_tol)
-        alphas, b = optimizer.optimize(max_iter=max_iter)
+        alphas, b = self.optimizer.optimize(x_train, y_train, self.kernel_function, max_iter=max_iter)
 
         self.alphas = alphas
         self.b = b
