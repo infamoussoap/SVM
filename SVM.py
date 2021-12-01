@@ -14,11 +14,11 @@ class SVM:
 
         self.fitted = False
 
-    def fit(self, x_train, y_train, max_iter=100):
+    def fit(self, x_train, y_train, max_iter=100, alpha_tol=1e-2, error_tol=1e-2):
         self.x_train = x_train
         self.y_train = y_train
 
-        optimizer = SMO(x_train, y_train, self.kernel_function, C=self.C)
+        optimizer = SMO(x_train, y_train, self.kernel_function, C=self.C, alpha_tol=alpha_tol, error_tol=error_tol)
         alphas, b = optimizer.optimize(max_iter=max_iter)
 
         self.alphas = alphas
