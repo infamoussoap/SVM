@@ -28,9 +28,12 @@ class StochasticSMO:
         self.cached_errors = -y_train
 
     @staticmethod
-    def objective_function(y_train, alphas, kernel):
-        return 0.5 * np.sum(kernel * y_train[:, None] * y_train[None, :] * alphas[:, None] * alphas[None, :]) \
-               - np.sum(alphas)
+    def objective_function(y_train, alphas, kernel, batch_indices):
+        batched_kernel = kernel[:, batch_indices]
+        batched_y = y_train[:, None] * y_train[None, batch_indices]
+        batched_alpha = alphas[:, None] * alphas[None, batch_indices]
+
+        return 0.5 * np.sum(batched_kernel * batched_y * batched_alpha) - np.sum(alphas)
 
     def optimize(self, max_iter=1000, batch_size=128):
         num_changed = 0
@@ -96,19 +99,19 @@ class StochasticSMO:
             # Take step based on heuristic
             if np.sum(non_zero_and_non_c_alpha) > 1:
                 i = self.arg_with_maximum_distance(j, batch_indices)
-                if self.take_step(i, j):
+                if self.take_step(i, j, batch_indices):
                     return True
 
             # Take step on non-zero and non-c values
             # batch_indices is already shuffled, so no need to re-shuffle
             non_zero_and_non_c_indices = batch_indices[non_zero_and_non_c_alpha]
-            step_taken = self.take_step_over_indices(j, non_zero_and_non_c_indices)
+            step_taken = self.take_step_over_indices(j, non_zero_and_non_c_indices, batch_indices)
             if step_taken:
                 return True
 
             # Take step on everything else
             other_indices = batch_indices[~non_zero_and_non_c_alpha]
-            step_taken = self.take_step_over_indices(j, other_indices)
+            step_taken = self.take_step_over_indices(j, other_indices, batch_indices)
             if step_taken:
                 return True
 
@@ -125,13 +128,13 @@ class StochasticSMO:
             return batch_indices[np.argmin(batched_errors)]
         return batch_indices[np.argmax(batched_errors)]
 
-    def take_step_over_indices(self, j, shuffled_indices):
-        for i in shuffled_indices:
-            if self.take_step(i, j):
+    def take_step_over_indices(self, j, shuffled_working_indices, batch_indices):
+        for i in shuffled_working_indices:
+            if self.take_step(i, j, batch_indices):
                 return True
         return False
 
-    def take_step(self, i, j):
+    def take_step(self, i, j, batch_indices):
         if i == j:
             return False
 
@@ -153,7 +156,7 @@ class StochasticSMO:
             a2 = alpha2 + y2 * (E1 - E2) / eta
             a2 = np.clip(a2, L, H)
         else:
-            a2 = self.get_new_alpha2_with_negative_eta(j, L, H, alpha2)
+            a2 = self.get_new_alpha2_with_negative_eta(j, L, H, alpha2, batch_indices)
 
         if a2 < 1e-8:
             a2 = 0.0
@@ -182,14 +185,14 @@ class StochasticSMO:
 
         return True
 
-    def get_new_alpha2_with_negative_eta(self, j, L, H, alpha2):
+    def get_new_alpha2_with_negative_eta(self, j, L, H, alpha2, batch_indices):
         alphas_adj = self.alphas.copy()
 
         alphas_adj[j] = L
-        L_obj = self.objective_function(self.y_train, alphas_adj, self.kernel)
+        L_obj = self.objective_function(self.y_train, alphas_adj, self.kernel, batch_indices)
 
         alphas_adj[j] = H
-        H_obj = self.objective_function(self.y_train, alphas_adj, self.kernel)
+        H_obj = self.objective_function(self.y_train, alphas_adj, self.kernel, batch_indices)
 
         if L_obj < H_obj - self.alpha_tol:
             return L
