@@ -19,15 +19,11 @@ class LazyKernel:
 
 
 class StochasticSMO:
-    def __init__(self, x_train, y_train, kernel_function,
-                 C=1.0, alpha_tol=1e-2, error_tol=1e-2, cache_kernel=True):
+    def __init__(self, C=1.0, alpha_tol=1e-2, error_tol=1e-2, cache_kernel=True, batch_size=128):
         """ Initialize sequential minimal optimization
 
             Parameters
             ----------
-            x_train : (n, ...) np.array
-            y_train : (n, ) np.array
-            kernel_function : function
             C : float, optional
                 The regularization strength
             alpha_tol : float, optional
@@ -37,19 +33,33 @@ class StochasticSMO:
             cache_kernel : bool, optional
                 To cache the kernel or not
         """
-        self.x_train = x_train
-        self.y_train = y_train
-
-        self.kernel_function = kernel_function
-        self.cache_kernel = cache_kernel
-
         self.C = C
-
-        self.alphas = np.zeros(len(x_train))
-        self.b = 0.0
 
         self.alpha_tol = alpha_tol
         self.error_tol = error_tol
+
+        self.cache_kernel = cache_kernel
+
+        self.batch_size = batch_size
+
+        # To be initialized later
+        self.x_train = None
+        self.y_train = None
+        self.kernel_function = None
+
+        self.alphas = None
+        self.b = None
+
+        self.cached_errors = None
+
+    def initialize_attributes(self, x_train, y_train, kernel_function):
+        self.y_train = y_train
+        self.x_train = x_train
+
+        self.kernel_function = kernel_function
+
+        self.alphas = np.zeros(len(x_train))
+        self.b = 0.0
 
         # Coefficients are all 0 in the beginning, so error is just -y_train
         self.cached_errors = -y_train
@@ -69,12 +79,14 @@ class StochasticSMO:
 
         return 0.5 * np.sum(batched_kernel * batched_y * batched_alpha) - np.sum(alphas)
 
-    def optimize(self, max_iter=1000, batch_size=128):
+    def optimize(self, x_train, y_train, kernel_function, max_iter=1000):
+        self.initialize_attributes(x_train, y_train, kernel_function)
+
         num_changed = 0
         examine_all = True
         count = 0
 
-        num_batches = np.ceil(len(self.y_train) / batch_size).astype(int)
+        num_batches = np.ceil(len(self.y_train) / self.batch_size).astype(int)
         indices = np.arange(len(self.y_train))
 
         while (num_changed > 0 or examine_all) and (count < max_iter):
@@ -82,8 +94,8 @@ class StochasticSMO:
             num_changed = 0
 
             for batch_num in range(num_batches):
-                start_index = batch_num * batch_size
-                end_index = (batch_num + 1) * batch_size
+                start_index = batch_num * self.batch_size
+                end_index = (batch_num + 1) * self.batch_size
                 batch_indices = indices[start_index: end_index]
 
                 num_changed += self.examine_batch(batch_indices, examine_all)

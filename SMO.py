@@ -2,37 +2,41 @@ import numpy as np
 
 
 class SMO:
-    def __init__(self, x_train, y_train, kernel_function, C=1.0, alpha_tol=1e-2, error_tol=1e-2):
-        """ Initialize sequential minimal optimization
-
-            Parameters
-            ----------
-            x_train : (n, ...) np.array
-            y_train : (n, ) np.array
-            kernel_function : function
-            C : float, optional
-                The regularization strength
-        """
-        self.y_train = y_train
-        self.kernel = kernel_function(x_train, x_train)
+    def __init__(self, C=1.0, alpha_tol=1e-2, error_tol=1e-2):
+        """ Initialize sequential minimal optimization """
 
         self.C = C
-
-        self.alphas = np.zeros(len(x_train))
-        self.b = 0.0
 
         self.alpha_tol = alpha_tol
         self.error_tol = error_tol
 
-        # Coefficients are all 0 in the beginning, so error is just -y_train
-        self.cached_errors = -y_train
+        # To be initialized later
+        self.y_train = None
+        self.kernel = None
+
+        self.alphas = None
+        self.b = None
+
+        self.cached_errors = None
 
     @staticmethod
     def objective_function(y_train, alphas, kernel):
         return 0.5 * np.sum(kernel * y_train[:, None] * y_train[None, :] * alphas[:, None] * alphas[None, :]) \
                - np.sum(alphas)
 
-    def optimize(self, max_iter=1000):
+    def initialize_attributes(self, x_train, y_train, kernel_function):
+        self.y_train = y_train
+        self.kernel = kernel_function(x_train, x_train)
+
+        self.alphas = np.zeros(len(x_train))
+        self.b = 0.0
+
+        # Coefficients are all 0 in the beginning, so error is just -y_train
+        self.cached_errors = -y_train
+
+    def optimize(self, x_train, y_train, kernel_function, max_iter=1000):
+        self.initialize_attributes(x_train, y_train, kernel_function)
+
         num_changed = 0
         examine_all = True
         count = 0
