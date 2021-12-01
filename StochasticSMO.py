@@ -1,8 +1,26 @@
 import numpy as np
+from functools import lru_cache
+
+
+class LazyKernel:
+    def __init__(self, x_train, kernel_function):
+        self.x_train = x_train
+        self.kernel_function = kernel_function
+
+    def __getitem__(self, slice_):
+        if isinstance(slice_, slice):
+            slice1 = slice_
+            slice2 = slice(None, None, None)
+        else:  # slice is instance of tuple
+            assert len(slice_) == 2, "Indexing only valid for 2D indexing"
+            slice1, slice2 = slice_
+
+        return self.kernel_function(self.x_train[slice1], self.x_train[slice2])
 
 
 class StochasticSMO:
-    def __init__(self, x_train, y_train, kernel_function, C=1.0, alpha_tol=1e-2, error_tol=1e-2):
+    def __init__(self, x_train, y_train, kernel_function,
+                 C=1.0, alpha_tol=1e-2, error_tol=1e-2, cache_kernel=True):
         """ Initialize sequential minimal optimization
 
             Parameters
@@ -12,9 +30,18 @@ class StochasticSMO:
             kernel_function : function
             C : float, optional
                 The regularization strength
+            alpha_tol : float, optional
+                Tolerance for lagrange multipliers
+            error_tol : float, optional
+                Tolerance for objective function
+            cache_kernel : bool, optional
+                To cache the kernel or not
         """
+        self.x_train = x_train
         self.y_train = y_train
-        self.kernel = kernel_function(x_train, x_train)
+
+        self.kernel_function = kernel_function
+        self.cache_kernel = cache_kernel
 
         self.C = C
 
@@ -26,6 +53,13 @@ class StochasticSMO:
 
         # Coefficients are all 0 in the beginning, so error is just -y_train
         self.cached_errors = -y_train
+
+    @property
+    @lru_cache()
+    def kernel(self):
+        if self.cache_kernel:
+            return self.kernel_function(self.x_train, self.x_train)
+        return LazyKernel(self.x_train, self.kernel_function)
 
     @staticmethod
     def objective_function(y_train, alphas, kernel, batch_indices):
