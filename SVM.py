@@ -1,8 +1,16 @@
 from SMO import SMO
+from StochasticSMO import StochasticSMO
 
 
 class SVM:
-    def __init__(self, kernel_function, C=1):
+    def __init__(self, kernel_function, C=1, optimizer='StochasticSMO'):
+        if optimizer.lower() == 'stochasticsmo':
+            self.optimizer = StochasticSMO
+        elif optimizer.lower() == 'smo':
+            self.optimizer = SMO
+        else:
+            raise ValueError("SVM only takes in optimizer=['StochasticSMO', 'SMO']")
+
         self.kernel_function = kernel_function
         self.C = C
 
@@ -18,7 +26,8 @@ class SVM:
         self.x_train = x_train
         self.y_train = y_train
 
-        optimizer = SMO(x_train, y_train, self.kernel_function, C=self.C, alpha_tol=alpha_tol, error_tol=error_tol)
+        optimizer = self.optimizer(x_train, y_train, self.kernel_function, C=self.C,
+                                   alpha_tol=alpha_tol, error_tol=error_tol)
         alphas, b = optimizer.optimize(max_iter=max_iter)
 
         self.alphas = alphas
