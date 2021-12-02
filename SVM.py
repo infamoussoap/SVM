@@ -28,14 +28,16 @@ class SVM:
 
         self.fitted = False
 
+        self.history = None
+
     def fit(self, x_train, y_train, max_iter=100):
         self.x_train = x_train
         self.y_train = y_train
 
-        alphas, b = self.optimizer.optimize(x_train, y_train, self.kernel_function, max_iter=max_iter)
+        self.history = self.optimizer.optimize(x_train, y_train, self.kernel_function, max_iter=max_iter)
 
-        self.alphas = alphas
-        self.b = b
+        self.alphas = self.optimizer.alphas
+        self.b = self.optimizer.b
 
     def predict(self, x_new):
         kernel = self.kernel_function(self.x_train, x_new)

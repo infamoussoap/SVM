@@ -89,6 +89,8 @@ class StochasticSMO:
         num_batches = np.ceil(len(self.y_train) / self.batch_size).astype(int)
         indices = np.arange(len(self.y_train))
 
+        history = [np.sum(self.cached_errors ** 2)]
+
         while (num_changed > 0 or examine_all) and (count < max_iter):
             np.random.shuffle(indices)
             num_changed = 0
@@ -105,9 +107,10 @@ class StochasticSMO:
             elif num_changed == 0:
                 examine_all = True
 
+            history.append(np.sum(self.cached_errors ** 2))
             count += 1
 
-        return self.alphas, self.b
+        return history
 
     def examine_batch(self, batch_indices, examine_all):
         if examine_all:

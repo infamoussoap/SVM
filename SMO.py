@@ -41,6 +41,8 @@ class SMO:
         examine_all = True
         count = 0
 
+        history = [np.sum(self.cached_errors ** 2)]
+
         while (num_changed > 0 or examine_all) and (count < max_iter):
             if examine_all:
                 num_changed = self.examine_all_lagrange_multipliers()
@@ -52,9 +54,10 @@ class SMO:
             elif num_changed == 0:
                 examine_all = True
 
+            history.append(np.sum(self.cached_errors ** 2))
             count += 1
 
-        return self.alphas, self.b
+        return history
 
     def examine_all_lagrange_multipliers(self):
         """ Examines each lagrange multiplier sequentially """
