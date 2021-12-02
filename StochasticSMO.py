@@ -232,16 +232,18 @@ class StochasticSMO:
         b2 = E2 + y1 * (a1 - alpha1) * k12 + y2 * (a2 - alpha2) * k22 + self.b
         b_new = self.get_new_threshold(a1, a2, b1, b2, self.C)
 
+        # Updated Cached Errors
         self.cached_errors = self.cached_errors + y1 * (a1 - alpha1) * self.kernel[i, :] \
                              + y2 * (a2 - alpha2) * self.kernel[j, :] - (b_new - self.b)
-
-        self.alphas[i] = a1
-        self.alphas[j] = a2
-        self.b = b_new
 
         for index, alpha in zip([i, j], [a1, a2]):
             if 0 < alpha < self.C:
                 self.cached_errors[index] = 0.0
+
+        # Update Parameters
+        self.alphas[i] = a1
+        self.alphas[j] = a2
+        self.b = b_new
 
         return True
 
