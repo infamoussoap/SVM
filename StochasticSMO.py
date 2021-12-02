@@ -73,8 +73,15 @@ class StochasticSMO:
         return LazyKernel(self.x_train, self.kernel_function)
 
     @staticmethod
-    def objective_function(y_train, alphas, kernel, batch_indices):
-        batched_kernel = kernel[:, batch_indices]
+    def objective_function(y_train, alphas, kernel, batch_indices, eps=1e-7):
+        non_zero_alphas = np.argwhere(alphas > eps)
+        non_zero_batch_alphas = np.argwhere(alphas[batch_indices] > eps)
+
+        # No need to compute the kernel where alpha is 0
+        batched_kernel = np.zeros((len(y_train), len(batch_indices)))
+        if len(non_zero_alphas) > 0 and len(non_zero_batch_alphas) > 0:
+            batched_kernel[non_zero_alphas, non_zero_batch_alphas] = kernel[non_zero_alphas, non_zero_batch_alphas]
+
         batched_y = y_train[:, None] * y_train[None, batch_indices]
         batched_alpha = alphas[:, None] * alphas[None, batch_indices]
 
