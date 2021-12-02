@@ -1,4 +1,5 @@
 import numpy as np
+import warnings
 
 
 class SMO:
@@ -56,6 +57,9 @@ class SMO:
 
             history.append(np.sum(self.cached_errors ** 2))
             count += 1
+
+        if count == max_iter:
+            warnings.warn("Max iterations reached and convergence is not guaranteed.")
 
         return history
 
