@@ -60,7 +60,12 @@ class SVM:
         if predict_as_batch:
             return self.predict_as_batches(x_new, batch_size=batch_size)
 
-        kernel = self.kernel_function(self.x_train, x_new)
+        # No need to evaluate the kernel when alpha_i = 0
+        kernel = np.zeros((len(self.alphas), len(x_new)))
+
+        non_zero_alphas = self.alphas > 0
+        if np.sum(non_zero_alphas) > 0:
+            kernel[non_zero_alphas, :] = self.kernel_function(self.x_train[non_zero_alphas], x_new)
         return (self.y_train * self.alphas) @ kernel - self.b
 
     def predict_as_batches(self, x_new, batch_size=128):
