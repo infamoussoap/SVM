@@ -2,11 +2,11 @@ import numpy as np
 from functools import lru_cache
 import warnings
 
-from Kernels import LazyKernel
+from Kernels import get_kernel
 
 
 class StochasticSMO:
-    def __init__(self, C=1.0, alpha_tol=1e-2, error_tol=1e-2, cache_kernel=True, batch_size=128):
+    def __init__(self, C=1.0, alpha_tol=1e-2, error_tol=1e-2, kernel_type="stock", batch_size=128):
         """ Initialize sequential minimal optimization
 
             Parameters
@@ -17,15 +17,16 @@ class StochasticSMO:
                 Tolerance for lagrange multipliers
             error_tol : float, optional
                 Tolerance for objective function
-            cache_kernel : bool, optional
-                To cache the kernel or not
+            kernel_type : str, optional
+                Type of kernel, either ["stock", "lazy", "disk"]
         """
         self.C = C
 
         self.alpha_tol = alpha_tol
         self.error_tol = error_tol
 
-        self.cache_kernel = cache_kernel
+        self.kernel_class = get_kernel(kernel_type)
+        self._kernel = None
 
         self.batch_size = batch_size
 
@@ -52,11 +53,11 @@ class StochasticSMO:
         self.cached_errors = -y_train
 
     @property
-    @lru_cache()
     def kernel(self):
-        if self.cache_kernel:
-            return self.kernel_function(self.x_train, self.x_train)
-        return LazyKernel(self.x_train, self.kernel_function)
+        if self._kernel is None:
+            self._kernel = self.kernel_class(self.x_train, self.kernel_function)
+
+        return self._kernel
 
     @staticmethod
     def objective_function(y_train, alphas, kernel, batch_indices, eps=1e-7):
