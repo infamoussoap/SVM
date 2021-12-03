@@ -19,6 +19,11 @@ class StochasticSMO:
                 Tolerance for objective function
             kernel_type : str, optional
                 Type of kernel, either ["stock", "lazy", "disk"]
+                    stock - The kernel is saved to RAM
+                    lazy - The kernel is never saved, and is always computed when required
+                    disk - The kernel is saved to disk
+            batch_size : int, optional
+                This parameter is ignored when kernel_type="stock"
         """
         self.C = C
 

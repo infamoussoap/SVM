@@ -72,8 +72,8 @@ class DiskKernel:
         raise ValueError(f"Indexing not supported for type {type(item)}")
 
     def _getitem(self, s1, s2):
-        # Usually it is faster if you are getting a single item from the kernel
-        # to just compute it, rather than retrieve it from disk
+        # If you are getting a single item from the kernel it is usually faster to just compute it, rather
+        # than to retrieve it from the disk
         if isinstance(s1, slice) or isinstance(s2, slice):
             with tables.open_file(self.table_filename, mode="r", title="Root") as h5file:
                 return h5file.root.kernel[s1, s2]
@@ -82,6 +82,14 @@ class DiskKernel:
 
 
 def slice_length(s, max_length):
+    """ Given a slice, will return the length of the slice
+
+        Parameters
+        ----------
+        s : slice
+        max_length : int
+            The maximum length of the array to be indexed by the slice
+    """
     if isinstance(s, (int, np.int64)):
         return 1
 
