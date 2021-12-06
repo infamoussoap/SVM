@@ -47,7 +47,9 @@ class SVM:
         self.fitted = True
 
     def _fit_for_binary_classification(self, x_train, y_train, max_iter=100):
-        """ Here there should only be 2 unique labels """
+        """ This performs classifications when it is only a binary classification problem.
+            Unlike the multiclass classification, no sampling is performed here
+        """
         positive_label = self.unique_labels[1]
 
         self.models = [SVMBinaryClassification(self.kernel_function, self.C, self.optimizer)]
@@ -66,6 +68,9 @@ class SVM:
         self.history = self.models[0].history
 
     def _fit_for_multiclass_classification(self, x_train, y_train, max_iter=100):
+        """ Multiclass Classifications samples the negative class to be the same length
+            as the positive class, so there is no class imbalance
+        """
         for _ in range(len(self.unique_labels)):
             self.models.append(SVMBinaryClassification(self.kernel_function, self.C, self.optimizer))
 
