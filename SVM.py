@@ -123,6 +123,18 @@ class SVM:
 
         return self.unique_labels[predicted_labels]
 
+    @property
+    def alphas(self):
+        if len(self.unique_labels) == 2:
+            return self.models[0].alphas
+        return np.array([model.alphas for model in self.models]).T
+
+    @property
+    def b(self):
+        if len(self.unique_labels) == 2:
+            return self.models[0].b
+        return np.array([model.b for model in self.models])
+
 
 class SVMBinaryClassification:
     """ Support Vector Machine for Binary Classification """
