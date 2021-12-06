@@ -4,9 +4,9 @@ from SMO import SMO
 from StochasticSMO import StochasticSMO
 
 
-def get_optimizer(optimizer):
+def get_new_instance_of_optimizer(optimizer):
     if isinstance(optimizer, (SMO, StochasticSMO)):
-        return optimizer
+        return type(optimizer)(**optimizer.get_config())
     elif optimizer.lower() == 'stochasticsmo':
         return StochasticSMO()
     elif optimizer.lower() == 'smo':
@@ -139,7 +139,7 @@ class SVM:
 class SVMBinaryClassification:
     """ Support Vector Machine for Binary Classification """
     def __init__(self, kernel_function, C=1, optimizer='StochasticSMO'):
-        self.optimizer = get_optimizer(optimizer)
+        self.optimizer = get_new_instance_of_optimizer(optimizer)
 
         self.kernel_function = kernel_function
         self.C = C
