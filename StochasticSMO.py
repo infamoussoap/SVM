@@ -1,5 +1,4 @@
 import numpy as np
-from functools import lru_cache
 import warnings
 
 from Kernels import get_kernel
