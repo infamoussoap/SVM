@@ -3,6 +3,7 @@ from functools import lru_cache
 import warnings
 
 from Kernels import get_kernel
+from Kernels import DiskKernel
 
 
 class StochasticSMO:
@@ -121,6 +122,9 @@ class StochasticSMO:
 
         if count == max_iter:
             warnings.warn("Max iterations reached and convergence is not guaranteed.")
+
+        if isinstance(self._kernel, DiskKernel):
+            self._kernel.remove_file()
 
         return history
 

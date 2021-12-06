@@ -1,3 +1,5 @@
+import os
+
 import numpy as np
 import tables
 
@@ -79,6 +81,9 @@ class DiskKernel:
                 return h5file.root.kernel[s1, s2]
         else:
             return self.kernel_function(self.x_train[s1], self.x_train[s2])
+
+    def remove_file(self):
+        os.remove(self.table_filename)
 
 
 def slice_length(s, max_length):
