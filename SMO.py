@@ -20,6 +20,12 @@ class SMO:
 
         self.cached_errors = None
 
+    def get_config(self):
+        """ Returns the variables required to create a new instance of this class """
+        return {'C': self.C,
+                'alpha_tol': self.alpha_tol,
+                'error_tol': self.error_tol}
+
     @staticmethod
     def objective_function(y_train, alphas, kernel):
         return 0.5 * np.sum(kernel * y_train[:, None] * y_train[None, :] * alphas[:, None] * alphas[None, :]) \

@@ -30,7 +30,7 @@ class StochasticSMO:
         self.alpha_tol = alpha_tol
         self.error_tol = error_tol
 
-        self.kernel_class = get_kernel(kernel_type)
+        self.kernel_type = kernel_type
         self._kernel = None
 
         self.batch_size = batch_size
@@ -44,6 +44,14 @@ class StochasticSMO:
         self.b = None
 
         self.cached_errors = None
+
+    def get_config(self):
+        """ Returns the variables required to create a new instance of this class """
+        return {'C': self.C,
+                'alpha_tol': self.alpha_tol,
+                'error_tol': self.error_tol,
+                'kernel_type': self.kernel_type,
+                'batch_size': self.batch_size}
 
     def initialize_attributes(self, x_train, y_train, kernel_function):
         self.y_train = y_train
@@ -60,7 +68,8 @@ class StochasticSMO:
     @property
     def kernel(self):
         if self._kernel is None:
-            self._kernel = self.kernel_class(self.x_train, self.kernel_function)
+            kernel_class = get_kernel(self.kernel_type)
+            self._kernel = kernel_class(self.x_train, self.kernel_function)
 
         return self._kernel
 
