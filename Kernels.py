@@ -64,7 +64,7 @@ class DiskKernel:
 
             # Indexing is slower row-wise, so better to perform as little row access as you can
             s1, s2 = item
-            if slice_length(s1, self.n) < slice_length(s2, self.n):
+            if slice_length(s1, self.n) <= slice_length(s2, self.n):
                 return self._getitem(s1, s2)
             else:
                 return self._getitem(s2, s1).T
