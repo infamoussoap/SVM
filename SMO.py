@@ -108,7 +108,7 @@ class SMO:
                 return True
 
             # Take step on everything else
-            other_indices = np.argwhere(non_zero_and_non_c_alpha).flatten()
+            other_indices = np.argwhere(~non_zero_and_non_c_alpha).flatten()
             step_taken = self.take_step_over_indices(j, other_indices)
             if step_taken:
                 return True
