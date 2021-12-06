@@ -127,13 +127,13 @@ class SVM:
     def alphas(self):
         if len(self.unique_labels) == 2:
             return self.models[0].alphas
-        return np.array([model.alphas for model in self.models]).T
+        return [model.alphas for model in self.models]
 
     @property
     def b(self):
         if len(self.unique_labels) == 2:
             return self.models[0].b
-        return np.array([model.b for model in self.models])
+        return [model.b for model in self.models]
 
 
 class SVMBinaryClassification:
