@@ -3,7 +3,6 @@ import warnings
 cimport cython
 
 
-
 cdef class CythonSMO:
     cdef readonly double[:] y_train, alphas, cached_errors
     cdef readonly double b
@@ -81,7 +80,7 @@ cdef class CythonSMO:
 
         return history
 
-    def examine_all_lagrange_multipliers(self):
+    cdef examine_all_lagrange_multipliers(self):
         """ Examines each lagrange multiplier sequentially """
         cdef int num_changed = 0
         cdef int j
@@ -90,7 +89,7 @@ cdef class CythonSMO:
             num_changed += self.examine_example(j)
         return num_changed
 
-    def examine_all_non_zero_and_non_c_lagrange_multipliers(self):
+    cdef examine_all_non_zero_and_non_c_lagrange_multipliers(self):
         """ Only examines the lagrange multipliers alpha_i such that 0 < alpha_i < C """
         cdef int num_changed = 0
         for j, alpha in enumerate(self.alphas):
@@ -101,7 +100,7 @@ cdef class CythonSMO:
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    def examine_example(self, int j):
+    cdef examine_example(self, int j):
         cdef float y2 = self.y_train[j]
         cdef float alpha2 = self.alphas[j]
         cdef float E2 = self.cached_errors[j]
@@ -133,7 +132,7 @@ cdef class CythonSMO:
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    def arg_with_maximum_distance(self, int j):
+    cdef arg_with_maximum_distance(self, int j):
         """ Returns index i where it solves the problem
                 argmax_i |svm_errors[j] - svm_errors[i]|
         """
@@ -144,7 +143,7 @@ cdef class CythonSMO:
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    def take_step_over_indices(self, int j, int[:] indices):
+    cdef take_step_over_indices(self, int j, int[:] indices):
         shuffled_indices = np.asarray(indices).copy()
         np.random.shuffle(shuffled_indices)
 
@@ -216,7 +215,7 @@ cdef class CythonSMO:
         return True
 
     @staticmethod
-    def get_bounds_for_lagrange_multipliers(double a1, double a2, double y1, double y2, double C):
+    cdef get_bounds_for_lagrange_multipliers(double a1, double a2, double y1, double y2, double C):
         if y1 != y2:
             L = max(0, a2 - a1)
             H = min(C, C + a2 - a1)
@@ -228,7 +227,7 @@ cdef class CythonSMO:
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    def get_new_alpha2_with_negative_eta(self, int j, float L, float H, float alpha2):
+    cdef get_new_alpha2_with_negative_eta(self, int j, float L, float H, float alpha2):
         alphas_adj = np.asarray(self.alphas).copy()
 
         alphas_adj[j] = L
@@ -245,7 +244,7 @@ cdef class CythonSMO:
             return alpha2
 
     @staticmethod
-    def get_new_threshold(float a1, float a2, float b1, float b2, float C):
+    cdef get_new_threshold(float a1, float a2, float b1, float b2, float C):
         if 0 < a1 < C:
             return b1
         elif 0 < a2 < C:
