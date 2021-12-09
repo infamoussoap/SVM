@@ -3,30 +3,6 @@ import warnings
 cimport cython
 
 
-@cython.boundscheck(False)
-@cython.wraparound(False)
-def cython_objective_function(double[:] y_train, double[:] alphas, double[:, :] kernel):
-    cdef double total = 0.0
-    cdef double alpha_sum = 0.0
-    cdef int N, i, j, k
-
-    N = y_train.shape[0]
-
-    for i in range(N):
-        for j in range(i + 1):
-            if i == j:
-                # Diagonal Elements
-                total = total + y_train[i] * y_train[j] * alphas[i] * alphas[j] * kernel[i, j]
-            else:
-                # Since the kernel is symmetric: bottom half = top half. So just multiply by 2
-                total = total + 2 * (y_train[i] * y_train[j] * alphas[i] * alphas[j] * kernel[i, j])
-
-    total = total * 0.5
-
-    for i in range(N):
-        total = total - alphas[i]
-
-    return total
 
 cdef class CythonSMO:
     cdef readonly double[:] y_train, alphas, cached_errors
@@ -39,6 +15,32 @@ cdef class CythonSMO:
 
         self.alpha_tol = alpha_tol
         self.error_tol = error_tol
+
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
+    @staticmethod
+    def cython_objective_function(double[:] y_train, double[:] alphas, double[:, :] kernel):
+        cdef double total = 0.0
+        cdef double alpha_sum = 0.0
+        cdef int N, i, j, k
+
+        N = y_train.shape[0]
+
+        for i in range(N):
+            for j in range(i + 1):
+                if i == j:
+                    # Diagonal Elements
+                    total = total + y_train[i] * y_train[j] * alphas[i] * alphas[j] * kernel[i, j]
+                else:
+                    # Since the kernel is symmetric: bottom half = top half. So just multiply by 2
+                    total = total + 2 * (y_train[i] * y_train[j] * alphas[i] * alphas[j] * kernel[i, j])
+
+        total = total * 0.5
+
+        for i in range(N):
+            total = total - alphas[i]
+
+        return total
 
     def initialize_attributes(self, x_train, double[:] y_train, kernel_function):
         self.y_train = np.zeros(y_train.shape[0], dtype=np.float64)
@@ -230,10 +232,10 @@ cdef class CythonSMO:
         alphas_adj = np.asarray(self.alphas).copy()
 
         alphas_adj[j] = L
-        L_obj = cython_objective_function(self.y_train, alphas_adj, self.kernel)
+        L_obj = CythonSMO.cython_objective_function(self.y_train, alphas_adj, self.kernel)
 
         alphas_adj[j] = H
-        H_obj = cython_objective_function(self.y_train, alphas_adj, self.kernel)
+        H_obj = CythonSMO.cython_objective_function(self.y_train, alphas_adj, self.kernel)
 
         if L_obj < H_obj - self.alpha_tol:
             return L
