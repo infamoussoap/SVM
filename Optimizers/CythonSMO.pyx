@@ -9,7 +9,7 @@ cdef class CythonSMO:
     cdef double[:, :] kernel
     cdef double C, alpha_tol, error_tol
 
-    def __init__(self, double C, double alpha_tol, double error_tol):
+    def __init__(self, double C=1.0, double alpha_tol=1e-2, double error_tol=1e-2):
         self.C = C
 
         self.alpha_tol = alpha_tol
