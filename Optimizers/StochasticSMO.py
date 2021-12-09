@@ -1,12 +1,15 @@
 import numpy as np
 import warnings
 
+from .Optimizer import Optimizer
+
 from Kernels import get_kernel
 from Kernels import DiskKernel
 
 
-class StochasticSMO:
-    def __init__(self, C=1.0, alpha_tol=1e-2, error_tol=1e-2, kernel_type="stock", batch_size=128):
+class StochasticSMO(Optimizer):
+    def __init__(self, C=1.0, alpha_tol=1e-2, error_tol=1e-2,
+                 kernel_type="stock", batch_size=128):
         """ Initialize sequential minimal optimization
 
             Parameters

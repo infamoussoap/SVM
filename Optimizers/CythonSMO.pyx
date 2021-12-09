@@ -27,7 +27,7 @@ def cython_objective_function(double[:] y_train, double[:] alphas, double[:, :] 
 
     return total
 
-cdef class CythonSMO:
+cdef class CythonSMO(Optimizer):
     cdef readonly double[:] y_train, alphas, cached_errors
     cdef readonly double b
     cdef double[:, :] kernel
@@ -183,7 +183,7 @@ cdef class CythonSMO:
         b1 = E1 + y1 * (a1 - alpha1) * k11 + y2 * (a2 - alpha2) * k12 + self.b
         b2 = E2 + y1 * (a1 - alpha1) * k12 + y2 * (a2 - alpha2) * k22 + self.b
         b_new = CythonSMO.get_new_threshold(a1, a2, b1, b2, self.C)
-        
+
         self.cached_errors = np.asarray(self.cached_errors) \
                              + y1 * (a1 - alpha1) * np.asarray(self.kernel[i, :]) \
                              + y2 * (a2 - alpha2) * np.asarray(self.kernel[j, :]) \

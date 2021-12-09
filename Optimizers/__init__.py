@@ -1,3 +1,5 @@
+from .Optimizer import Optimizer
+
 from .SMO import SMO
 from .StochasticSMO import StochasticSMO
 

@@ -1,8 +1,10 @@
 import numpy as np
 import warnings
 
+from .Optimizer import Optimizer
 
-class SMO:
+
+class SMO(Optimizer):
     def __init__(self, C=1.0, alpha_tol=1e-2, error_tol=1e-2):
         """ Initialize sequential minimal optimization """
 
