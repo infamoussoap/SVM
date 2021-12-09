@@ -2,6 +2,7 @@ import numpy as np
 import warnings
 cimport cython
 
+
 @cython.boundscheck(False)
 @cython.wraparound(False)
 def cython_objective_function(double[:] y_train, double[:] alphas, double[:, :] kernel):
@@ -27,29 +28,30 @@ def cython_objective_function(double[:] y_train, double[:] alphas, double[:, :] 
 
     return total
 
-cdef class CythonSMO(Optimizer):
+cdef class CythonSMO:
     cdef readonly double[:] y_train, alphas, cached_errors
     cdef readonly double b
     cdef double[:, :] kernel
-    cdef readonly double C, alpha_tol, error_tol
+    cdef double C, alpha_tol, error_tol
 
-    def __init__(self, double[:, :] kernel, double[:] y_train, double C,
-                 double alpha_tol, double error_tol):
-        self.kernel = kernel
+    def __init__(self, double C, double alpha_tol, double error_tol):
+        self.C = C
 
+        self.alpha_tol = alpha_tol
+        self.error_tol = error_tol
+
+    def initialize_attributes(self, x_train, y_train, kernel_function):
         self.y_train = np.zeros(y_train.shape[0], dtype=np.float64)
         self.y_train[:] = y_train
 
-        self.C = C
-        self.alpha_tol = alpha_tol
-        self.error_tol = error_tol
+        self.kernel = kernel_function(x_train, x_train).astype(np.float64)
 
         self.alphas = np.zeros(y_train.shape[0], dtype=np.float64)
         self.b = 0.0
 
         self.cached_errors = np.zeros(y_train.shape[0], dtype=np.float64) - y_train
 
-    def optimize(self, max_iter=1000):
+    def optimize(self, x_train, double[:] y_train, kernel_function, max_iter=1000):
 
         num_changed = 0
         examine_all = True
