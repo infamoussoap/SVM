@@ -8,7 +8,7 @@ cimport cython
 def cython_objective_function(double[:] y_train, double[:] alphas, double[:, :] kernel):
     cdef double total = 0.0
     cdef double alpha_sum = 0.0
-    cdef Py_ssize_t N, i, j, k
+    cdef int N, i, j, k
 
     N = y_train.shape[0]
 
@@ -53,7 +53,7 @@ cdef class CythonSMO:
 
     def optimize(self, x_train, double[:] y_train, kernel_function, max_iter=1000):
         self.initialize_attributes(x_train, y_train, kernel_function)
-        
+
         num_changed = 0
         examine_all = True
         count = 0
@@ -81,25 +81,29 @@ cdef class CythonSMO:
 
     def examine_all_lagrange_multipliers(self):
         """ Examines each lagrange multiplier sequentially """
-        num_changed = 0
+        cdef int num_changed = 0
+        cdef int j
+
         for j in range(len(self.alphas)):
             num_changed += self.examine_example(j)
         return num_changed
 
     def examine_all_non_zero_and_non_c_lagrange_multipliers(self):
         """ Only examines the lagrange multipliers alpha_i such that 0 < alpha_i < C """
-        num_changed = 0
+        cdef int num_changed = 0
         for j, alpha in enumerate(self.alphas):
             is_non_zero_and_non_c = 0 < alpha < self.C
             if is_non_zero_and_non_c:
                 num_changed += self.examine_example(j)
         return num_changed
 
-    def examine_example(self, j):
-        y2 = self.y_train[j]
-        alpha2 = self.alphas[j]
-        E2 = self.cached_errors[j]
-        r2 = E2 * y2
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
+    def examine_example(self, int j):
+        cdef float y2 = self.y_train[j]
+        cdef float alpha2 = self.alphas[j]
+        cdef float E2 = self.cached_errors[j]
+        cdef float r2 = E2 * y2
 
         if (r2 < -self.error_tol and alpha2 < self.C) or (r2 > self.error_tol and alpha2 > 0):
             N = len(self.alphas)
@@ -112,34 +116,41 @@ cdef class CythonSMO:
                     return True
 
             # Take step on non-zero and non-c values
-            non_zero_and_non_c_indices = np.argwhere(non_zero_and_non_c_alpha).flatten()
+            non_zero_and_non_c_indices = np.argwhere(non_zero_and_non_c_alpha).flatten().astype(np.int32)
             step_taken = self.take_step_over_indices(j, non_zero_and_non_c_indices)
             if step_taken:
                 return True
 
             # Take step on everything else
-            other_indices = np.argwhere(~non_zero_and_non_c_alpha).flatten()
+            other_indices = np.argwhere(~non_zero_and_non_c_alpha).flatten().astype(np.int32)
             step_taken = self.take_step_over_indices(j, other_indices)
             if step_taken:
                 return True
 
         return False
 
-    def arg_with_maximum_distance(self, j):
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
+    def arg_with_maximum_distance(self, int j):
         """ Returns index i where it solves the problem
-                max_i |svm_errors[j] - svm_errors[i]|
+                argmax_i |svm_errors[j] - svm_errors[i]|
         """
-        E2 = self.cached_errors[j]
+        cdef float E2 = self.cached_errors[j]
         if E2 > 0:
             return np.argmin(self.cached_errors)
         return np.argmax(self.cached_errors)
 
-    def take_step_over_indices(self, j, indices):
-        shuffled_indices = indices.copy()
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
+    def take_step_over_indices(self, int j, int[:] indices):
+        shuffled_indices = np.asarray(indices).copy()
         np.random.shuffle(shuffled_indices)
 
-        for i in shuffled_indices:
-            if self.take_step(i, j):
+        cdef int N = shuffled_indices.shape[0]
+        cdef int k
+
+        for k in range(N):
+            if self.take_step(shuffled_indices[k], j):
                 return True
         return False
 
@@ -213,7 +224,9 @@ cdef class CythonSMO:
 
         return L, H
 
-    def get_new_alpha2_with_negative_eta(self, j, L, H, alpha2):
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
+    def get_new_alpha2_with_negative_eta(self, int j, float L, float H, float alpha2):
         alphas_adj = np.asarray(self.alphas).copy()
 
         alphas_adj[j] = L
@@ -230,7 +243,7 @@ cdef class CythonSMO:
             return alpha2
 
     @staticmethod
-    def get_new_threshold(a1, a2, b1, b2, C):
+    def get_new_threshold(float a1, float a2, float b1, float b2, float C):
         if 0 < a1 < C:
             return b1
         elif 0 < a2 < C:
