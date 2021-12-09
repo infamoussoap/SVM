@@ -40,7 +40,7 @@ cdef class CythonSMO:
         self.alpha_tol = alpha_tol
         self.error_tol = error_tol
 
-    def initialize_attributes(self, x_train, y_train, kernel_function):
+    def initialize_attributes(self, x_train, double[:] y_train, kernel_function):
         self.y_train = np.zeros(y_train.shape[0], dtype=np.float64)
         self.y_train[:] = y_train
 
@@ -52,7 +52,8 @@ cdef class CythonSMO:
         self.cached_errors = np.zeros(y_train.shape[0], dtype=np.float64) - y_train
 
     def optimize(self, x_train, double[:] y_train, kernel_function, max_iter=1000):
-
+        self.initialize_attributes(x_train, y_train, kernel_function)
+        
         num_changed = 0
         examine_all = True
         count = 0
