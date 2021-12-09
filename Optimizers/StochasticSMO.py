@@ -6,7 +6,7 @@ from Kernels import DiskKernel
 
 
 class StochasticSMO:
-    def __init__(self, C=1.0, alpha_tol=1e-2, error_tol=1e-2,
+    def __init__(self, C=1.0, alpha_tol=1e-2, error_tol=1e-2, random_seed=None,
                  kernel_type="stock", batch_size=128):
         """ Initialize sequential minimal optimization
 
@@ -45,6 +45,9 @@ class StochasticSMO:
         self.b = None
 
         self.cached_errors = None
+
+        self.random_seed = random_seed
+        np.random.seed(random_seed)
 
     def get_config(self):
         """ Returns the variables required to create a new instance of this class """

@@ -3,7 +3,7 @@ import warnings
 
 
 class SMO:
-    def __init__(self, C=1.0, alpha_tol=1e-2, error_tol=1e-2):
+    def __init__(self, C=1.0, alpha_tol=1e-2, error_tol=1e-2, random_seed=None):
         """ Initialize sequential minimal optimization """
 
         self.C = C
@@ -19,6 +19,9 @@ class SMO:
         self.b = None
 
         self.cached_errors = None
+
+        self.random_seed = random_seed
+        np.random.seed(random_seed)
 
     def get_config(self):
         """ Returns the variables required to create a new instance of this class """

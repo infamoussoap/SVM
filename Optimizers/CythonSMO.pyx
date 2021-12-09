@@ -8,12 +8,18 @@ cdef class CythonSMO:
     cdef readonly double b
     cdef double[:, :] kernel
     cdef double C, alpha_tol, error_tol
+    cdef int random_seed
 
-    def __init__(self, double C=1.0, double alpha_tol=1e-2, double error_tol=1e-2):
+    def __init__(self, double C=1.0, double alpha_tol=1e-2, double error_tol=1e-2,
+                 int random_seed=-1):
         self.C = C
 
         self.alpha_tol = alpha_tol
         self.error_tol = error_tol
+
+        self.random_seed = random_seed
+        if random_seed >= 0:
+            np.random.seed(random_seed)
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
