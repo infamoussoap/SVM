@@ -107,10 +107,10 @@ cdef class CythonSMO:
     @cython.boundscheck(False)
     @cython.wraparound(False)
     cdef examine_example(self, int j):
-        cdef float y2 = self.y_train[j]
-        cdef float alpha2 = self.alphas[j]
-        cdef float E2 = self.cached_errors[j]
-        cdef float r2 = E2 * y2
+        cdef double y2 = self.y_train[j]
+        cdef double alpha2 = self.alphas[j]
+        cdef double E2 = self.cached_errors[j]
+        cdef double r2 = E2 * y2
 
         if (r2 < -self.error_tol and alpha2 < self.C) or (r2 > self.error_tol and alpha2 > 0):
             N = len(self.alphas)
@@ -142,7 +142,7 @@ cdef class CythonSMO:
         """ Returns index i where it solves the problem
                 argmax_i |svm_errors[j] - svm_errors[i]|
         """
-        cdef float E2 = self.cached_errors[j]
+        cdef double E2 = self.cached_errors[j]
         if E2 > 0:
             return np.argmin(self.cached_errors)
         return np.argmax(self.cached_errors)
@@ -174,7 +174,7 @@ cdef class CythonSMO:
         cdef double s = y1 * y2
         cdef double L, H
         L, H = CythonSMO.get_bounds_for_lagrange_multipliers(alpha1, alpha2, y1, y2, self.C)
-        if abs(L - H) < 1e-7:
+        if L == H:
             return False
 
         cdef double k11 = self.kernel[i, i]
@@ -233,7 +233,7 @@ cdef class CythonSMO:
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    cdef get_new_alpha2_with_negative_eta(self, int j, float L, float H, float alpha2):
+    cdef get_new_alpha2_with_negative_eta(self, int j, double L, double H, double alpha2):
         alphas_adj = np.asarray(self.alphas).copy()
 
         alphas_adj[j] = L
@@ -250,7 +250,7 @@ cdef class CythonSMO:
             return alpha2
 
     @staticmethod
-    cdef get_new_threshold(float a1, float a2, float b1, float b2, float C):
+    cdef get_new_threshold(double a1, double a2, double b1, double b2, double C):
         if 0 < a1 < C:
             return b1
         elif 0 < a2 < C:
