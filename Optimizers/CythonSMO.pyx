@@ -154,14 +154,14 @@ cdef class CythonSMO:
     @cython.boundscheck(False)
     @cython.wraparound(False)
     cdef take_step_over_indices(self, int j, int[:] indices):
-        shuffled_indices = np.asarray(indices).copy()
-        np.random.shuffle(shuffled_indices)
+        cdef int N = indices.shape[0]
 
-        cdef int N = shuffled_indices.shape[0]
-        cdef int k
+        cdef int[:] shuffled_index = np.random.choice(range(N), N, replace=False).astype(np.int32)
 
+        cdef int k, index
         for k in range(N):
-            if self.take_step(shuffled_indices[k], j):
+            index = shuffled_index[k]
+            if self.take_step(indices[index], j):
                 return True
         return False
 
@@ -217,6 +217,8 @@ cdef class CythonSMO:
         self.alphas[j] = a2
         self.b = b_new
 
+        cdef int index
+        cdef float alpha
         for index, alpha in zip([i, j], [a1, a2]):
             if 0 < alpha < self.C:
                 self.cached_errors[index] = 0.0
