@@ -1,8 +1,8 @@
 import numpy as np
 import warnings
 
-from Kernels import get_kernel
-from Kernels import DiskKernel
+from Optimizers.TypedKernels import get_kernel
+from Optimizers.TypedKernels import DiskKernel
 
 
 class StochasticSMO:

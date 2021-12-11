@@ -3,34 +3,7 @@ import os
 import numpy as np
 import tables
 
-
-class StockKernel:
-    """ Kernel elements are just stored in RAM """
-    def __init__(self, x_train, kernel_function):
-        self.x_train = x_train
-        self.kernel_function = kernel_function
-
-        self.kernel = kernel_function(x_train, x_train)
-
-    def __getitem__(self, item):
-        return self.kernel.__getitem__(item)
-
-
-class LazyKernel:
-    """ Kernel elements are never stored and are always computed when needed """
-    def __init__(self, x_train, kernel_function):
-        self.x_train = x_train
-        self.kernel_function = kernel_function
-
-    def __getitem__(self, slice_):
-        if isinstance(slice_, slice):
-            slice1 = slice_
-            slice2 = slice(None, None, None)
-        else:  # slice is instance of tuple
-            assert len(slice_) == 2, "Indexing only valid for 2D indexing"
-            slice1, slice2 = slice_
-
-        return self.kernel_function(self.x_train[slice1], self.x_train[slice2])
+from .helper_file import slice_length
 
 
 class DiskKernel:
@@ -84,33 +57,3 @@ class DiskKernel:
 
     def remove_file(self):
         os.remove(self.table_filename)
-
-
-def slice_length(s, max_length):
-    """ Given a slice, will return the length of the slice
-
-        Parameters
-        ----------
-        s : slice
-        max_length : int
-            The maximum length of the array to be indexed by the slice
-    """
-    if isinstance(s, (int, np.int64)):
-        return 1
-
-    start = 0 if s.start is None else s.start
-    stop = max_length if s.stop is None else s.stop
-    step = 1 if s.step is None else s.step
-
-    return (stop - start) // step
-
-
-kernels = {"stock": StockKernel, "lazy": LazyKernel, "disk": DiskKernel}
-
-
-def get_kernel(kernel_type):
-    val = kernels.get(kernel_type, None)
-    if val is None:
-        raise ValueError(f"{kernel_type} is not a valid kernel. Only {list(kernels.keys())} are valid kernel types.")
-    else:
-        return val
