@@ -1,10 +1,19 @@
 # distutils: extra_compile_args=-fopenmp
 # distutils: extra_link_args=-fopenmp
+# cython: profile=True
 
 import numpy as np
 import warnings
 cimport cython
 from cython.parallel import prange
+
+
+cdef clip(double a, double min_val, double max_val):
+    if a <= min_val:
+        return min_val
+    elif a >= max_val:
+        return max_val
+    return a
 
 
 cdef class CythonSMO:
@@ -69,7 +78,7 @@ cdef class CythonSMO:
         examine_all = True
         count = 0
 
-        history = [np.sum(np.asarray(self.cached_errors) ** 2)]
+        # history = [np.sum(np.asarray(self.cached_errors) ** 2)]
 
         while (num_changed > 0 or examine_all) and (count < max_iter):
             if examine_all:
@@ -82,13 +91,13 @@ cdef class CythonSMO:
             elif num_changed == 0:
                 examine_all = True
 
-            history.append(np.sum(np.asarray(self.cached_errors) ** 2))
+            # history.append(np.sum(np.asarray(self.cached_errors) ** 2))
             count += 1
 
         if count == max_iter:
             warnings.warn("Max iterations reached and convergence is not guaranteed.")
 
-        return history
+        return []
 
     cdef examine_all_lagrange_multipliers(self):
         """ Examines each lagrange multiplier sequentially """
@@ -117,8 +126,8 @@ cdef class CythonSMO:
         cdef double r2 = E2 * y2
 
         if (r2 < -self.error_tol and alpha2 < self.C) or (r2 > self.error_tol and alpha2 > 0):
-            N = len(self.alphas)
-            non_zero_and_non_c_alpha = (np.asarray(self.alphas) > 0.0) & (np.asarray(self.alphas) < self.C)
+            alphas = np.asarray(self.alphas)
+            non_zero_and_non_c_alpha = (alphas > 0.0) & (alphas < self.C)
 
             # Take step based on heuristic
             if np.sum(non_zero_and_non_c_alpha) > 1:
@@ -189,7 +198,7 @@ cdef class CythonSMO:
         cdef double a1, a2
         if eta > 0:
             a2 = alpha2 + y2 * (E1 - E2) / eta
-            a2 = np.clip(a2, L, H)
+            a2 = clip(a2, L, H)
         else:
             a2 = self.get_new_alpha2_with_negative_eta(j, L, H, alpha2)
             print("Get new alpha2")
