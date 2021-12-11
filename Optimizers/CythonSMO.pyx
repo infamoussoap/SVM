@@ -78,7 +78,7 @@ cdef class CythonSMO:
         examine_all = True
         count = 0
 
-        # history = [np.sum(np.asarray(self.cached_errors) ** 2)]
+        history = [np.sum(np.asarray(self.cached_errors) ** 2)]
 
         while (num_changed > 0 or examine_all) and (count < max_iter):
             if examine_all:
@@ -91,13 +91,13 @@ cdef class CythonSMO:
             elif num_changed == 0:
                 examine_all = True
 
-            # history.append(np.sum(np.asarray(self.cached_errors) ** 2))
+            history.append(np.sum(np.asarray(self.cached_errors) ** 2))
             count += 1
 
         if count == max_iter:
             warnings.warn("Max iterations reached and convergence is not guaranteed.")
 
-        return []
+        return history
 
     cdef examine_all_lagrange_multipliers(self):
         """ Examines each lagrange multiplier sequentially """
