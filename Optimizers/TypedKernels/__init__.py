@@ -4,6 +4,7 @@ from .StockKernel import StockKernel
 
 kernels = {"stock": StockKernel, "lazy": LazyKernel, "disk": DiskKernel}
 
+
 def get_kernel(kernel_type):
     val = kernels.get(kernel_type, None)
     if val is None:
