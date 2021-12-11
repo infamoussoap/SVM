@@ -1,6 +1,10 @@
+# distutils: extra_compile_args=-fopenmp
+# distutils: extra_link_args=-fopenmp
+
 import numpy as np
 import warnings
 cimport cython
+from cython.parallel import prange
 
 
 cdef class CythonSMO:
@@ -205,10 +209,9 @@ cdef class CythonSMO:
         b2 = E2 + y1 * (a1 - alpha1) * k12 + y2 * (a2 - alpha2) * k22 + self.b
         b_new = CythonSMO.get_new_threshold(a1, a2, b1, b2, self.C)
 
-        self.cached_errors = np.asarray(self.cached_errors) \
-                             + y1 * (a1 - alpha1) * np.asarray(self.kernel[i, :]) \
-                             + y2 * (a2 - alpha2) * np.asarray(self.kernel[j, :]) \
-                             - (b_new - self.b)
+        cdef double c1 = y1 * (a1 - alpha1)
+        cdef double c2 = y2 * (a2 - alpha2)
+        self.update_cached_errors(c1, c2, b_new, i, j)
 
         self.alphas[i] = a1
         self.alphas[j] = a2
@@ -219,6 +222,17 @@ cdef class CythonSMO:
                 self.cached_errors[index] = 0.0
 
         return True
+
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
+    def update_cached_errors(self, double c1, double c2, double b_new, int i, int j):
+        cdef int N = self.cached_errors.shape[0]
+        cdef int k
+
+        for k in prange(N, nogil=True):
+            self.cached_errors[k] = self.cached_errors[k] + c1 * self.kernel[i, k]\
+                                    + c2 * self.kernel[j, k] - (b_new - self.b)
+
 
     @staticmethod
     cdef get_bounds_for_lagrange_multipliers(double a1, double a2, double y1, double y2, double C):
@@ -234,14 +248,15 @@ cdef class CythonSMO:
     @cython.boundscheck(False)
     @cython.wraparound(False)
     cdef get_new_alpha2_with_negative_eta(self, int j, double L, double H, double alpha2):
-        alphas_adj = np.asarray(self.alphas).copy()
+        cdef double original_val = self.alphas[j]
 
-        alphas_adj[j] = L
-        L_obj = CythonSMO.cython_objective_function(self.y_train, alphas_adj, self.kernel)
+        self.alphas[j] = L
+        L_obj = CythonSMO.cython_objective_function(self.y_train, self.alphas, self.kernel)
 
-        alphas_adj[j] = H
-        H_obj = CythonSMO.cython_objective_function(self.y_train, alphas_adj, self.kernel)
+        self.alphas[j] = H
+        H_obj = CythonSMO.cython_objective_function(self.y_train, self.alphas, self.kernel)
 
+        self.alphas[j] = original_val
         if L_obj < H_obj - self.alpha_tol:
             return L
         elif L_obj > H_obj + self.alpha_tol:
