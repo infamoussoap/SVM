@@ -53,9 +53,10 @@ cdef class CythonStochasticSMO:
         batch_length = batch_indices.shape[0]
         N = y_train.shape[0]
 
-        cdef double[:] kernel_i, kernel_j
+        cdef double[:] kernel_i
 
-        for i in range(batch_length):
+        for k in range(batch_length):
+            i = batch_indices[k]
             kernel_i = kernel.get_row(i)
             for j in range(N):
                 total = total + y_train[i] * y_train[j] * alphas[i] * alphas[j] * kernel_i[j]
