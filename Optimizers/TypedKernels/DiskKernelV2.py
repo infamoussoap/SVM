@@ -71,7 +71,6 @@ class DiskKernel:
     def _simplify_queue(self):
         while self.kernel_locked:
             action, i, is_action_complete, val = self.queue.pop()
-            print(f"Computing {action} on {i} ...")
 
             if action == "set":
                 self._set_row(i)
@@ -82,10 +81,10 @@ class DiskKernel:
                 raise ValueError(f"'{action}' is not a valid action.")
 
             memoryview(is_action_complete)[...] = np.array(True)
-            print(f"{action} has been taken")
 
             if len(self.queue) == 0:
                 self.kernel_locked = False
+                print("Kernel Is Fully Computed")
 
     def create_h5_file(self):
         with tables.open_file(self.table_filename, mode="w", title="Root") as h5file:
