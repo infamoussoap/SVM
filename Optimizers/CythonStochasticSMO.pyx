@@ -150,7 +150,7 @@ cdef class CythonStochasticSMO:
         cdef double r2 = E2 * y2
 
         if (r2 < -self.error_tol and alpha2 < self.C) or (r2 > self.error_tol and alpha2 > 0):
-            non_zero_and_non_c_alpha = self.number_of_support_vectors()
+            non_zero_and_non_c_alpha = self.number_of_support_vectors_in_batch(batch_indices)
 
             # Take step based on heuristic
             if non_zero_and_non_c_alpha > 1:
@@ -172,11 +172,12 @@ cdef class CythonStochasticSMO:
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    cdef number_of_support_vectors(self):
-        cdef int N = self.alphas.shape[0]
-        cdef int count = 0, i
+    cdef number_of_support_vectors_in_batch(self, batch_indices):
+        cdef int N = batch_indices.shape[0]
+        cdef int count = 0, i, n
 
-        for i in range(N):
+        for n in range(N):
+            i = batch_indices[n]
             alpha = self.alphas[i]
             count += (alpha > 0.0 and alpha < self.C)
 
