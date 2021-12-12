@@ -16,7 +16,7 @@ class DiskKernel:
 
         self.kernel_function = kernel_function
 
-        self.table_filename = table_filename
+        self.table_filename = DiskKernel.get_unique_h5_filename(table_filename)
         self.create_h5_file()
 
         self.is_row_set = np.zeros(self.n).astype(bool)
@@ -92,3 +92,16 @@ class DiskKernel:
         with tables.open_file(self.table_filename, mode="w", title="Root") as h5file:
             h5file.create_carray(h5file.root, "kernel", tables.Float64Atom(),
                                  shape=(self.n, self.n), chunkshape=(1, self.n))
+
+    @staticmethod
+    def get_unique_h5_filename(filename):
+        """ filename assumed to be of the form ***.h5"""
+        files = os.listdir()
+        name = filename[:-3]
+        
+        i = 1
+        while filename in files:
+            filename = f"{name}_{i}.h5"
+            i += 1
+
+        return filename
