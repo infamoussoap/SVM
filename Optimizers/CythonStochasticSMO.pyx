@@ -26,9 +26,12 @@ cdef class CythonStochasticSMO:
         double sleep_time
         int random_seed, batch_size
         object kernel
+        bint verbose
 
     def __init__(self, double C=1.0, double alpha_tol=1e-2, double error_tol=1e-2,
-                 int random_seed=-1, int batch_size=128, double sleep_time=0.01):
+                 int random_seed=-1, int batch_size=128, double sleep_time=0.01, bint verbose=False):
+        self.verbose = verbose
+
         self.C = C
 
         self.alpha_tol = alpha_tol
@@ -47,7 +50,8 @@ cdef class CythonStochasticSMO:
                 'alpha_tol': self.alpha_tol,
                 'error_tol': self.error_tol,
                 'batch_size': self.batch_size,
-                'sleep_time': self.sleep_time}
+                'sleep_time': self.sleep_time,
+                'verbose': self.verbose}
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
@@ -98,6 +102,9 @@ cdef class CythonStochasticSMO:
         history = [np.sum(np.asarray(self.cached_errors) ** 2)]
 
         while (num_changed > 0 or examine_all) and (count < max_iter):
+            if self.verbose:
+                print(f"Current History: {history}")
+
             np.random.shuffle(indices)
             num_changed = 0
 
