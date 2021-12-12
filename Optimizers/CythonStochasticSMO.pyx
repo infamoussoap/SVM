@@ -199,8 +199,9 @@ cdef class CythonStochasticSMO:
     @cython.wraparound(False)
     cdef get_argmin_of_cached_errors_at_batch_indices(self, int[:] batch_indices):
         cdef int N = batch_indices.shape[0], n, i
-        cdef int min_arg = 0
-        cdef double min_val = batch_indices[0]
+
+        cdef int min_arg = batch_indices[0]
+        cdef double min_val = self.cached_errors[min_arg]
 
         for n in range(N):
             i = batch_indices[n]
@@ -215,8 +216,9 @@ cdef class CythonStochasticSMO:
     @cython.wraparound(False)
     cdef get_argmax_of_cached_errors_at_batch_indices(self, int[:] batch_indices):
         cdef int N = batch_indices.shape[0], n, i
-        cdef int max_arg = 0
-        cdef double max_val = batch_indices[0]
+
+        cdef int max_arg = batch_indices[0]
+        cdef double max_val = self.cached_errors[max_arg]
 
         for n in range(N):
             i = batch_indices[n]
