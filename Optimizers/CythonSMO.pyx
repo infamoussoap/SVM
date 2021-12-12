@@ -34,6 +34,11 @@ cdef class CythonSMO:
         if random_seed >= 0:
             np.random.seed(random_seed)
 
+    def get_config(self):
+        return {'C': self.C,
+                'alpha_tol': self.alpha_tol,
+                'error_tol': self.error_tol}
+
     @cython.boundscheck(False)
     @cython.wraparound(False)
     @staticmethod

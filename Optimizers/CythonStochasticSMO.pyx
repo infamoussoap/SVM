@@ -42,6 +42,14 @@ cdef class CythonStochasticSMO:
         if random_seed >= 0:
             np.random.seed(random_seed)
 
+    def get_config(self):
+        return {'C': self.C,
+                'alpha_tol': self.alpha_tol,
+                'error_tol': self.error_tol,
+                'kernel_type': self.kernel_type,
+                'batch_size': self.batch_size,
+                'sleep_time': self.sleep_time}
+
     @cython.boundscheck(False)
     @cython.wraparound(False)
     @staticmethod
