@@ -147,7 +147,7 @@ class SVMBinaryClassification:
 
         self.history = self.optimizer.optimize(x_train, y_train, self.kernel_function, max_iter=max_iter)
 
-        self.alphas = self.optimizer.alphas
+        self.alphas = np.asarray(self.optimizer.alphas)
         self.b = self.optimizer.b
 
     def predict(self, x_new, predict_as_batch=False, batch_size=128):
