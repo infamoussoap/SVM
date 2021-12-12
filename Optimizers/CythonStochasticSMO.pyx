@@ -72,7 +72,7 @@ cdef class CythonStochasticSMO:
         self.y_train = np.zeros(y_train.shape[0], dtype=np.float64)
         self.y_train[:] = y_train
 
-        self.kernel = DiskKernelV2(x_train, kernel_function)
+        self.kernel = DiskKernelV2(x_train, kernel_function, sleep_time=self.sleep_time)
 
         self.alphas = np.zeros(y_train.shape[0], dtype=np.float64)
         self.b = 0.0
