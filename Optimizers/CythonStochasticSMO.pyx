@@ -23,17 +23,20 @@ cdef class CythonStochasticSMO:
         readonly double[:] y_train, alphas, cached_errors
         readonly double b
         double C, alpha_tol, error_tol
+        double sleep_time
         int random_seed, batch_size
         object kernel
 
     def __init__(self, double C=1.0, double alpha_tol=1e-2, double error_tol=1e-2,
-                 int random_seed=-1, int batch_size=128):
+                 int random_seed=-1, int batch_size=128, double sleep_time=0.01):
         self.C = C
 
         self.alpha_tol = alpha_tol
         self.error_tol = error_tol
 
         self.batch_size = batch_size
+
+        self.sleep_time = sleep_time
 
         self.random_seed = random_seed
         if random_seed >= 0:

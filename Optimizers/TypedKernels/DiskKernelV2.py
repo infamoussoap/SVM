@@ -8,9 +8,11 @@ import warnings
 
 
 class DiskKernel:
-    def __init__(self, x_train, kernel_function, table_filename="temp_kernel.h5"):
+    def __init__(self, x_train, kernel_function, sleep_time=0.01, table_filename="temp_kernel.h5"):
         self.n = x_train.shape[0]
         self.x_train = x_train
+
+        self.sleep_time = sleep_time
 
         self.kernel_function = kernel_function
 
@@ -43,7 +45,7 @@ class DiskKernel:
             self.queue.append(("get", i, is_action_complete, val))
 
             while not is_action_complete:
-                time.sleep(0.1)
+                time.sleep(self.sleep_time)
             return val
 
         return self._get_row(i)
