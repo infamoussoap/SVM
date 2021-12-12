@@ -68,6 +68,13 @@ class DiskKernel:
             return h5file.root.kernel[i]
 
     def remove_file(self):
+        if self.kernel_locked:
+            is_action_complete = np.array(False)
+            self.queue.append(("terminate", None, is_action_complete, None))
+
+            while not is_action_complete:
+                time.sleep(self.sleep_time)
+
         os.remove(self.table_filename)
 
     def _simplify_queue(self):
@@ -79,6 +86,8 @@ class DiskKernel:
             elif action == "get":
                 self._set_row(i)
                 memoryview(val)[:] = self._get_row(i)
+            elif action == "terminate":
+                self.queue = []  # Reset the queue
             else:
                 raise ValueError(f"'{action}' is not a valid action.")
 
