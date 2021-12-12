@@ -46,7 +46,6 @@ cdef class CythonStochasticSMO:
         return {'C': self.C,
                 'alpha_tol': self.alpha_tol,
                 'error_tol': self.error_tol,
-                'kernel_type': self.kernel_type,
                 'batch_size': self.batch_size,
                 'sleep_time': self.sleep_time}
 
