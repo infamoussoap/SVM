@@ -206,7 +206,6 @@ cdef class CythonSMO:
             a2 = clip(a2, L, H)
         else:
             a2 = self.get_new_alpha2_with_negative_eta(j, L, H, alpha2)
-            print("Get new alpha2")
 
         if a2 < 1e-8:
             a2 = 0.0
