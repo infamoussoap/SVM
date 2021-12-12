@@ -1,6 +1,7 @@
 from .DiskKernel import DiskKernel
 from .LazyKernel import LazyKernel
 from .StockKernel import StockKernel
+from .DiskKernelV2 import DiskKernel as DiskKernelV2
 
 kernels = {"stock": StockKernel, "lazy": LazyKernel, "disk": DiskKernel}
 
