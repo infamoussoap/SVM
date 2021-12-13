@@ -142,12 +142,14 @@ cdef class CythonSMO:
 
             # Take step on non-zero and non-c values
             non_zero_and_non_c_indices = np.argwhere(non_zero_and_non_c_alpha).flatten().astype(np.int32)
+            np.random.shuffle(non_zero_and_non_c_indices)
             step_taken = self.take_step_over_indices(j, non_zero_and_non_c_indices)
             if step_taken:
                 return True
 
             # Take step on everything else
             other_indices = np.argwhere(~non_zero_and_non_c_alpha).flatten().astype(np.int32)
+            np.random.shuffle(other_indices)
             step_taken = self.take_step_over_indices(j, other_indices)
             if step_taken:
                 return True
@@ -167,15 +169,13 @@ cdef class CythonSMO:
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    cdef take_step_over_indices(self, int j, int[:] indices):
-        cdef int N = indices.shape[0]
+    cdef take_step_over_indices(self, int j, int[:] shuffled_indices):
+        cdef int N = shuffled_indices.shape[0]
 
-        cdef int[:] shuffled_index = np.random.choice(range(N), N, replace=False).astype(np.int32)
-
-        cdef int k, index
+        cdef int k, i
         for k in range(N):
-            index = shuffled_index[k]
-            if self.take_step(indices[index], j):
+            i = shuffled_indices[k]
+            if self.take_step(i, j):
                 return True
         return False
 
