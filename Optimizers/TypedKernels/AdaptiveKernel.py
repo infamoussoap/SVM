@@ -22,9 +22,11 @@ class AdaptiveKernel:
         self.read_from_disk = self.is_read_disk_faster(i=0)
 
         if self.read_from_disk:
+            print("Adaptive Kernel is reading from disk.")
             self.kernel = DiskKernelV2(x_train, kernel_function, sleep_time=sleep_time,
                                       table_filename=table_filename)
         else:
+            print("Adaptive Kernel is computing on the fly.")
             self.kernel = LazyKernelV2(x_train.copy(), kernel_function)
 
     def create_table(self):
