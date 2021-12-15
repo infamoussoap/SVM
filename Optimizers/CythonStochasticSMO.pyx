@@ -31,7 +31,7 @@ cdef class CythonStochasticSMO:
 
     def __init__(self, double C=1.0, double alpha_tol=1e-2, double error_tol=1e-2,
                  int random_seed=-1, int batch_size=128, double sleep_time=0.01,
-                 bint verbose=False, str kernel_type='diskv2'):
+                 bint verbose=False, str kernel_type='adaptive'):
         self.verbose = verbose
 
         self.C = C
