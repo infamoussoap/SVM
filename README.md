@@ -4,3 +4,4 @@ Original Paper: https://www.microsoft.com/en-us/research/publication/sequential-
 
 Helpful Guide: https://jonchar.net/notebooks/SVM/
 
+Install by typing `python3 setup.py build_ext --inplace`
