@@ -74,7 +74,7 @@ cdef class CythonSMO:
         self.alphas = np.zeros(y_train.shape[0], dtype=np.float64)
         self.b = 0.0
 
-        self.cached_errors = np.zeros(y_train.shape[0], dtype=np.float64) - y_train
+        self.cached_errors = -np.asarray(y_train)
 
     def optimize(self, x_train, double[:] y_train, kernel_function, max_iter=1000):
         self.initialize_attributes(x_train, y_train, kernel_function)
