@@ -1,6 +1,3 @@
-import pyximport
-pyximport.install(language_level=3)
-
 from .SMO import SMO
 from .StochasticSMO import StochasticSMO
 from .CythonSMO import CythonSMO
